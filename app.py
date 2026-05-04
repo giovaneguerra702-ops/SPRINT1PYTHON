@@ -6,6 +6,7 @@ pdfs = []
 
 def nome_app():
     print('Challenge JOVI Python - EXPTECH')
+    print('============================================\n')
 
 def exibir_opcoes():
     print('1- Motivo para as Propostas')
@@ -56,6 +57,7 @@ def criar_pasta():
     os.system('cls')
     
     print('Vamos para uma pequena atividade: criar uma pasta para organizar suas fotos!')
+    print('============================================================================\n')
 
     resposta = input('Deseja criar uma pasta? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
@@ -65,6 +67,9 @@ def criar_pasta():
 
     while True:
         nome_pasta = input('Digite o nome da pasta: ')
+        if nome_pasta in pastas:
+            print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
+            continue
         pastas.append(nome_pasta)
         print(f'Pasta "{nome_pasta}" criada com sucesso!\n')
         
@@ -102,6 +107,7 @@ def criar_pdf():
     os.system('cls')
 
     print('Vamos para uma pequena atividade: criar um arquivo PDF!')
+    print('=========================================================\n')
 
     resposta = input('Deseja criar um arquivo PDF? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
@@ -111,6 +117,8 @@ def criar_pdf():
 
     while True:
         nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ')
+        if nome_pdf in pdfs:
+            nome_pdf += '_1'
         pdfs.append(nome_pdf)
         print(f'Arquivo "{nome_pdf}.pdf" criado com sucesso!\n')
         
@@ -126,6 +134,7 @@ def criar_pdf():
     voltar_app()
 
 def escolher_opcao():
+    print('=============================================')
     try:
         opcao = int(input('Digite o número da opção desejada: '))
 
