@@ -4,20 +4,24 @@ import os #os.system('cls')
 pastas = []
 pdfs = []
 
+#funçao que passa o nome do app
 def nome_app():
     print('Challenge JOVI Python - EXPTECH')
     print('============================================\n')
 
+#funcao que exibe opçoes
 def exibir_opcoes():
     print('1- Motivo para as Propostas')
     print('2- Criação de Pastas')
     print('3- Criação de PDF')
     print('4- Sair\n')
 
+#funcao que finaliza o app
 def finalizar_app():
     os.system('cls')
     print('finalizando o app...\n')
 
+#funçao de opçao invalida, quando a resposta nao é esperada
 def opcao_invalida():
     os.system('cls')
     print('Opção inválida, tente novamente\n')
@@ -27,6 +31,7 @@ def voltar_app():
     input('Pressione Enter para voltar ao menu principal...')
     main()
 
+#funcao da primeira escolhas
 def motivo_propostas():
     os.system('cls')
     print('O motivo para as propostas de funcionalidades relacionadas à organização de fotos e criação de PDFs a partir de imagens capturadas com a câmera do celular é proporcionar uma experiência mais eficiente e prática para os usuários, neste caso estudantes fulltime. Essas funcionalidades visam facilitar a gestão e o acesso às fotos, especialmente aquelas relacionadas a conteúdos educacionais, como anotações em lousas, exercícios e materiais de estudo.\n')
@@ -34,7 +39,7 @@ def motivo_propostas():
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
 
-#funçao de pastas
+#funçao de listar as pastas que vai estar presente na funcao criar_pasta 
 def listar_pastas():
     if not pastas:
         print('Nenhuma pasta foi criada ainda.')
@@ -59,12 +64,14 @@ def criar_pasta():
     print('Vamos para uma pequena atividade: criar uma pasta para organizar suas fotos!')
     print('============================================================================\n')
 
+    #interaçao com o usuario, para criaçao de pasta
     resposta = input('Deseja criar uma pasta? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
         print('Operação cancelada.')
         voltar_app()
         return
 
+    #verificacao da criaçao das pastas
     while True:
         nome_pasta = input('Digite o nome da pasta: ')
         if nome_pasta in pastas:
@@ -84,7 +91,7 @@ def criar_pasta():
             break
     voltar_app()
     
-#funcao de pdf
+#funcao de listar pdfs, que vai estar presente na funcao criar_pdf
 def listar_pdfs():
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
@@ -93,7 +100,7 @@ def listar_pdfs():
         for i, pdf in enumerate(pdfs, 1):
             print(f'{i}. {pdf}.pdf')
     print()
-
+    
 def criar_pdf():
     #explicação da função de pdf
     os.system('cls')
@@ -109,12 +116,14 @@ def criar_pdf():
     print('Vamos para uma pequena atividade: criar um arquivo PDF!')
     print('=========================================================\n')
 
+    #interaçao com o usuario, para criaçao de pasta
     resposta = input('Deseja criar um arquivo PDF? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
         print('Operação cancelada.')
         voltar_app()
         return
 
+    #verificaçao dos pdfs
     while True:
         nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ')
         if nome_pdf in pdfs:
@@ -133,11 +142,13 @@ def criar_pdf():
             break
     voltar_app()
 
+#funçao para escolher a opçao
 def escolher_opcao():
     print('=============================================')
     try:
         opcao = int(input('Digite o número da opção desejada: '))
 
+        #cada opcao ativa uma funçao
         if opcao == 1:
             motivo_propostas()
         elif opcao == 2:
