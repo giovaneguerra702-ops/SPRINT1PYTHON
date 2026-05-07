@@ -45,7 +45,7 @@ def listar_pastas():
         print('Nenhuma pasta foi criada ainda.')
     else:
         print('\nPastas criadas:')
-        for i, pasta in enumerate(pastas, 1):
+        for i, pasta in enumerate(pastas, start=1):
             print(f'{i}. {pasta}')
     print()
 
@@ -74,6 +74,9 @@ def criar_pasta():
     #verificacao da criaçao das pastas
     while True:
         nome_pasta = input('Digite o nome da pasta: ')
+        if not nome_pasta:
+            print('Erro: O nome da pasta não pode estar vazio.')
+            continue
         if nome_pasta in pastas:
             print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
             continue
@@ -97,7 +100,7 @@ def listar_pdfs():
         print('Nenhum PDF foi criado ainda.')
     else:
         print('\nPDFs criados:')
-        for i, pdf in enumerate(pdfs, 1):
+        for i, pdf in enumerate(pdfs, start=1):
             print(f'{i}. {pdf}.pdf')
     print()
     
@@ -126,8 +129,16 @@ def criar_pdf():
     #verificaçao dos pdfs
     while True:
         nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ')
+        if not nome_pdf:
+            print('Erro: O nome do arquivo PDF não pode estar vazio.')
+            continue
         if nome_pdf in pdfs:
-            nome_pdf += '_1'
+            contador = 1
+            sufixo = f"{nome_pdf}_{contador}"
+            while sufixo in pdfs:
+                contador += 1
+                sufixo = f"{nome_pdf}_{contador}"
+            nome_pdf = sufixo
         pdfs.append(nome_pdf)
         print(f'Arquivo "{nome_pdf}.pdf" criado com sucesso!\n')
         
