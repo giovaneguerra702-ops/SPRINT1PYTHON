@@ -42,10 +42,11 @@ def motivo_propostas():
     voltar_app()
 
 #funçao de listar as pastas que vai estar presente na funcao criar_pasta 
-def listar_pastas():
+def listar_pastas(pastas):
     if not pastas:
         print('Nenhuma pasta foi criada ainda.')
     else:
+        os.system('cls')
         print('\nPastas criadas:')
         print('---------------------------------------------')
         for i, pasta in enumerate(pastas, start=1):
@@ -91,7 +92,7 @@ def criar_pasta():
         #pede informações adicionais para compor o dicionário
         categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
         fotos = int(input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0)
-        if fotos < 0:
+        if fotos < 0: #verificaçao das entradas do usuario para fotos
             print('Erro: A quantidade de fotos não pode ser negativa.\n')
             continue
         elif type(fotos) != int:
@@ -103,7 +104,7 @@ def criar_pasta():
             'categoria': categoria,
             'qtd_fotos': fotos
         }
-        pastas.append(nova_pasta)
+        pastas.append(nova_pasta)#adiciona a nova pasta à lista de pastas
         print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
 
         #criar outra pasta se quiser
@@ -114,10 +115,11 @@ def criar_pasta():
     voltar_app()
     
 #funcao de listar pdfs, que vai estar presente na funcao criar_pdf
-def listar_pdfs():
+def listar_pdfs(pdfs):
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
     else:
+        os.system('cls')
         print('\nPDFs criados:')
         print('---------------------------------------------')
         for i, pdf in enumerate(pdfs, start=1):
@@ -169,7 +171,7 @@ def criar_pdf():
             nome_pdf = sufixo
         #pede quantidade de páginas para simular o PDF gerado
         paginas = int(input('Quantidade de fotos/páginas convertidas(ou nada para um): ') or 1)
-        if paginas < 0:
+        if paginas < 0: #verificaçao das entradas do usuario para paginas
             print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
             continue
         elif type(paginas) != int:
@@ -180,16 +182,12 @@ def criar_pdf():
             'nome': nome_pdf,
             'paginas': paginas
         }
-        pdfs.append(novo_pdf)
+        pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
         print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com {paginas} página(s)!\n')
 
         #criar outro pdf se quiser
         criar_outra = input('Deseja criar outro PDF? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
-            listar = input('Gostaria de listar os PDFs criados? (s/n): ')
-            if listar.lower() in ('s', 'sim'):
-                os.system('cls')
-                listar_pdfs()
             break
 
     voltar_app()
@@ -206,11 +204,11 @@ def escolher_opcao():
         elif opcao == 2:
             criar_pasta()
         elif opcao == 3:
-            listar_pastas()
+            listar_pastas(pastas)
         elif opcao == 4:
             criar_pdf()
         elif opcao == 5:
-            listar_pdfs()
+            listar_pdfs(pdfs)
         elif opcao == 6:
             finalizar_app()
         else:
