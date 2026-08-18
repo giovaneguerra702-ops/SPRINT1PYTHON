@@ -13,8 +13,10 @@ def nome_app():
 def exibir_opcoes():
     print('1- Motivo para as Propostas')
     print('2- Criação de Pastas')
-    print('3- Criação de PDF')
-    print('4- Sair\n')
+    print('3- Listar Pastas')
+    print('4- Criação de PDF')
+    print('5- Listar PDFs')
+    print('6- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -45,12 +47,18 @@ def listar_pastas():
         print('Nenhuma pasta foi criada ainda.')
     else:
         print('\nPastas criadas:')
+        print('---------------------------------------------')
         for i, pasta in enumerate(pastas, start=1):
-            print(f'{i}. {pasta}')
-    print()
-
+            #acessa as chaves do dicionário
+            nome = pasta['nome']
+            categoria = pasta['categoria']
+            fotos = pasta['qtd_fotos']
+            print(f'{i}. {nome} | Categoria: {categoria} | {fotos} foto(s)')
+        print('---------------------------------------------\n')
+        
+    voltar_app()
 def criar_pasta():
-    #explicação da função de pastas
+    # Explicação das etapas mantida
     os.system('cls')
     print('Imagine que Você tirou uma foto de uma lousa com uma materia especifica, porem anteriormente você já tinha tirado uma foto a um tempo atras da mesma materia, e agora você quer organizar suas fotos, para isso você pode criar uma pasta com o nome da matéria e colocar as fotos dentro dela ou deixar que o aparelho faça isso automaticamente, assim fica mais fácil de encontrar as fotos depois.\n')
     input('Pressione Enter para continuar...')
@@ -64,45 +72,50 @@ def criar_pasta():
     print('Vamos para uma pequena atividade: criar uma pasta para organizar suas fotos!')
     print('============================================================================\n')
 
-    #interaçao com o usuario, para criaçao de pasta
     resposta = input('Deseja criar uma pasta? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
         print('Operação cancelada.')
         voltar_app()
         return
 
-    #verificacao da criaçao das pastas
     while True:
-        nome_pasta = input('Digite o nome da pasta: ')
+        nome_pasta = input('Digite o nome da pasta: ').strip()
         if not nome_pasta:
-            print('Erro: O nome da pasta não pode estar vazio.')
+            print('Erro: O nome da pasta não pode estar vazio.\n')
             continue
-        if nome_pasta in pastas:
+        #verifica se já existe um dicionário com esse mesmo nome na lista 'pastas'
+        if any(pasta['nome'].lower() == nome_pasta.lower() for pasta in pastas):
             print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
             continue
-        pastas.append(nome_pasta)
-        print(f'Pasta "{nome_pasta}" criada com sucesso!\n')
-        
-        # pergunta se deseja criar outra pasta
+        #pede informações adicionais para compor o dicionário
+        categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
+        fotos = input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0
+        #cria a estrutura do dicionário
+        nova_pasta = {
+            'nome': nome_pasta,
+            'categoria': categoria,
+            'qtd_fotos': fotos
+        }
+        pastas.append(nova_pasta)
+        print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
+        #criar outra pasta se quiser
         criar_outra = input('Deseja criar outra pasta? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
-            # pergunta se quer listar as pastas criadas
-            listar = input('Gostaria de listar as pastas criadas? (s/n): ')
-            if listar.lower() in ('s', 'sim'):
-                os.system('cls')
-                listar_pastas()
             break
+
     voltar_app()
     
 #funcao de listar pdfs, que vai estar presente na funcao criar_pdf
 def listar_pdfs():
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
+        voltar_app()
     else:
         print('\nPDFs criados:')
         for i, pdf in enumerate(pdfs, start=1):
             print(f'{i}. {pdf}.pdf')
-    print()
+        print()
+        voltar_app()
     
 def criar_pdf():
     #explicação da função de pdf
@@ -165,8 +178,12 @@ def escolher_opcao():
         elif opcao == 2:
             criar_pasta()
         elif opcao == 3:
-            criar_pdf()
+            listar_pastas()
         elif opcao == 4:
+            criar_pdf()
+        elif opcao == 5:
+            listar_pdfs()
+        elif opcao == 6:
             finalizar_app()
         else:
             opcao_invalida()
