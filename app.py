@@ -13,8 +13,10 @@ def nome_app():
 def exibir_opcoes():
     print('1- Motivo para as Propostas')
     print('2- Criação de Pastas')
-    print('3- Criação de PDF')
-    print('4- Sair\n')
+    print('3- Listar Pastas')
+    print('4- Criação de PDF')
+    print('5- Listar PDFs')
+    print('6- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -43,11 +45,13 @@ def motivo_propostas():
 def listar_pastas():
     if not pastas:
         print('Nenhuma pasta foi criada ainda.')
+        voltar_app()
     else:
         print('\nPastas criadas:')
         for i, pasta in enumerate(pastas, start=1):
             print(f'{i}. {pasta}')
     print()
+    voltar_app()
 
 def criar_pasta():
     #explicação da função de pastas
@@ -87,10 +91,6 @@ def criar_pasta():
         criar_outra = input('Deseja criar outra pasta? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
             # pergunta se quer listar as pastas criadas
-            listar = input('Gostaria de listar as pastas criadas? (s/n): ')
-            if listar.lower() in ('s', 'sim'):
-                os.system('cls')
-                listar_pastas()
             break
     voltar_app()
     
@@ -98,11 +98,13 @@ def criar_pasta():
 def listar_pdfs():
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
+        voltar_app()
     else:
         print('\nPDFs criados:')
         for i, pdf in enumerate(pdfs, start=1):
             print(f'{i}. {pdf}.pdf')
-    print()
+        print()
+        voltar_app()
     
 def criar_pdf():
     #explicação da função de pdf
@@ -165,8 +167,12 @@ def escolher_opcao():
         elif opcao == 2:
             criar_pasta()
         elif opcao == 3:
-            criar_pdf()
+            listar_pastas()
         elif opcao == 4:
+            criar_pdf()
+        elif opcao == 5:
+            listar_pdfs()
+        elif opcao == 6:
             finalizar_app()
         else:
             opcao_invalida()
