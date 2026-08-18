@@ -72,6 +72,7 @@ def criar_pasta():
     print('Vamos para uma pequena atividade: criar uma pasta para organizar suas fotos!')
     print('============================================================================\n')
 
+    #interação com o usuário para criar pasta
     resposta = input('Deseja criar uma pasta? (s/n): ')
     if resposta.lower() not in ('s', 'sim'):
         print('Operação cancelada.')
@@ -89,7 +90,13 @@ def criar_pasta():
             continue
         #pede informações adicionais para compor o dicionário
         categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
-        fotos = input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0
+        fotos = int(input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0)
+        if fotos < 0:
+            print('Erro: A quantidade de fotos não pode ser negativa.\n')
+            continue
+        elif type(fotos) != int:
+            print('Erro: A quantidade de fotos deve ser um número inteiro não negativo.\n')
+            continue
         #cria a estrutura do dicionário
         nova_pasta = {
             'nome': nome_pasta,
@@ -98,6 +105,7 @@ def criar_pasta():
         }
         pastas.append(nova_pasta)
         print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
+
         #criar outra pasta se quiser
         criar_outra = input('Deseja criar outra pasta? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
@@ -109,13 +117,18 @@ def criar_pasta():
 def listar_pdfs():
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
-        voltar_app()
     else:
         print('\nPDFs criados:')
+        print('---------------------------------------------')
         for i, pdf in enumerate(pdfs, start=1):
-            print(f'{i}. {pdf}.pdf')
-        print()
-        voltar_app()
+            #acesso as chaves do dicionário
+            nome = pdf['nome']
+            paginas = pdf['paginas']
+            
+            print(f'{i}. {nome}.pdf ({paginas} página(s))')
+        print('---------------------------------------------\n')
+        
+    voltar_app()
     
 def criar_pdf():
     #explicação da função de pdf
@@ -139,31 +152,46 @@ def criar_pdf():
         voltar_app()
         return
 
-    #verificaçao dos pdfs
     while True:
-        nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ')
+        nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ').strip()
         if not nome_pdf:
-            print('Erro: O nome do arquivo PDF não pode estar vazio.')
+            print('Erro: O nome do arquivo PDF não pode estar vazio.\n')
             continue
-        if nome_pdf in pdfs:
+        #pega os nomes dos PDFs usados para tratar duplicados
+        nomes_existentes = [p['nome'] for p in pdfs]
+        #ajusta o nome com sufixo se já existir um pdf com aquele nome
+        if nome_pdf in nomes_existentes:
             contador = 1
             sufixo = f"{nome_pdf}_{contador}"
-            while sufixo in pdfs:
+            while sufixo in nomes_existentes:
                 contador += 1
                 sufixo = f"{nome_pdf}_{contador}"
             nome_pdf = sufixo
-        pdfs.append(nome_pdf)
-        print(f'Arquivo "{nome_pdf}.pdf" criado com sucesso!\n')
-        
-        # pergunta se deseja criar outro PDF
+        #pede quantidade de páginas para simular o PDF gerado
+        paginas = int(input('Quantidade de fotos/páginas convertidas(ou nada para um): ') or 1)
+        if paginas < 0:
+            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
+            continue
+        elif type(paginas) != int:
+            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
+            continue
+        #cria a estrutura do dicionário
+        novo_pdf = {
+            'nome': nome_pdf,
+            'paginas': paginas
+        }
+        pdfs.append(novo_pdf)
+        print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com {paginas} página(s)!\n')
+
+        #criar outro pdf se quiser
         criar_outra = input('Deseja criar outro PDF? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
-            # pergunta se quer listar os PDFs criados
             listar = input('Gostaria de listar os PDFs criados? (s/n): ')
             if listar.lower() in ('s', 'sim'):
                 os.system('cls')
                 listar_pdfs()
             break
+
     voltar_app()
 
 #funçao para escolher a opçao
