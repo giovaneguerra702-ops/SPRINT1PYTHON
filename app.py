@@ -45,6 +45,7 @@ def motivo_propostas():
 def listar_pastas(pastas):
     if not pastas:
         print('Nenhuma pasta foi criada ainda.')
+        voltar_app()
     else:
         os.system('cls')
         print('\nPastas criadas:')
@@ -118,6 +119,7 @@ def criar_pasta():
 def listar_pdfs(pdfs):
     if not pdfs:
         print('Nenhum PDF foi criado ainda.')
+        voltar_app()
     else:
         os.system('cls')
         print('\nPDFs criados:')
