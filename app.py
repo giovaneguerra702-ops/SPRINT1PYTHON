@@ -1,6 +1,7 @@
 #biblioteca que limpa o terminal
 import os #os.system('cls')
 
+#onde fica armazenados os conteudos criados
 pastas = []
 pdfs = []
 
