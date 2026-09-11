@@ -15,9 +15,11 @@ def exibir_opcoes():
     print('1- Motivo para as Propostas')
     print('2- Criação de Pastas')
     print('3- Listar Pastas')
-    print('4- Criação de PDF')
-    print('5- Listar PDFs')
-    print('6- Sair\n')
+    print('4- Apagar Pastas')
+    print('5- Criação de PDF')
+    print('6- Listar PDFs')
+    print('7- Apagar PDFs')
+    print('8- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -116,7 +118,35 @@ def listar_pastas(pastas):
         print('---------------------------------------------\n')    
 
     voltar_app()
-    
+
+#funçao de apagar pastas
+def apagar_pasta(pastas):
+    if not pastas:
+        print('Nenhuma pasta foi criada ainda.')
+        voltar_app()
+    else:
+        os.system('cls')
+        for pasta in pastas:
+            print(f'Pasta: {pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
+
+    #pergunta ao usuário qual pasta deseja apagar, entao percorre as pastas e deleta a pasta correspondente
+        remocao = input('Digite o nome da pasta que deseja apagar (ou deixe em branco para cancelar): ').strip()
+        if not remocao:
+            print('Operação cancelada.')
+            voltar_app()
+            return
+        else:
+            for pasta in pastas:
+                if pasta['nome'] == remocao:
+                    del pastas[pastas.index(pasta)]
+                    print(f'Pasta "{remocao}" apagada com sucesso!')
+                    voltar_app()
+                    return
+            print(f'Erro: A pasta "{remocao}" não foi encontrada.')
+            voltar_app()
+            return
+
+
 def criar_pdf():
     #explicação da função de pdf
     os.system('cls')
@@ -196,6 +226,32 @@ def listar_pdfs(pdfs):
         
     voltar_app()
 
+def apagar_pdf(pdfs):
+    if not pdfs:
+        print('Nenhum PDF foi criado ainda.')
+        voltar_app()
+    else:
+        os.system('cls')
+        for pdf in pdfs:
+            print(f'PDF: {pdf["nome"]} | Páginas: {pdf["paginas"]}')
+
+    #pergunta ao usuário qual PDF deseja apagar, entao percorre os PDFs e deleta o PDF correspondente
+        remocao = input('Digite o nome do PDF que deseja apagar (ou deixe em branco para cancelar): ').strip()
+        if not remocao:
+            print('Operação cancelada.')
+            voltar_app()
+            return
+        else:
+            for pdf in pdfs:
+                if pdf['nome'] == remocao:
+                    del pdfs[pdfs.index(pdf)]
+                    print(f'PDF "{remocao}" apagado com sucesso!')
+                    voltar_app()
+                    return
+            print(f'Erro: O PDF "{remocao}" não foi encontrado.')
+            voltar_app()
+            return
+
 #funçao para escolher a opçao
 def escolher_opcao():
     print('=============================================')
@@ -210,10 +266,14 @@ def escolher_opcao():
         elif opcao == 3:
             listar_pastas(pastas)
         elif opcao == 4:
-            criar_pdf()
+            apagar_pasta(pastas)
         elif opcao == 5:
-            listar_pdfs(pdfs)
+            criar_pdf()
         elif opcao == 6:
+            listar_pdfs(pdfs)
+        elif opcao == 7:
+            apagar_pdf(pdfs)
+        elif opcao == 8:
             finalizar_app()
         else:
             opcao_invalida()
