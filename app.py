@@ -1,6 +1,7 @@
 #biblioteca que limpa o terminal
 import os #os.system('cls')
 
+#onde fica armazenados os conteudos criados
 pastas = []
 pdfs = []
 
@@ -14,9 +15,11 @@ def exibir_opcoes():
     print('1- Motivo para as Propostas')
     print('2- Criação de Pastas')
     print('3- Listar Pastas')
-    print('4- Criação de PDF')
-    print('5- Listar PDFs')
-    print('6- Sair\n')
+    print('4- Apagar Pastas')
+    print('5- Criação de PDF')
+    print('6- Listar PDFs')
+    print('7- Apagar PDFs')
+    print('8- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -40,25 +43,7 @@ def motivo_propostas():
     print('Ao permitir a criação automática de pastas com base no conteúdo das fotos, os usuários podem organizar suas imagens de forma intuitiva, tornando mais fácil encontrar e acessar as fotos posteriormente. Além disso, a funcionalidade de gerar PDFs a partir das imagens capturadas oferece uma maneira rápida e conveniente de transformar fotos de exercícios ou anotações em documentos editáveis, facilitando o estudo e a revisão do material.\n')
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
-
-#funçao de listar as pastas que vai estar presente na funcao criar_pasta 
-def listar_pastas(pastas):
-    if not pastas:
-        print('Nenhuma pasta foi criada ainda.')
-        voltar_app()
-    else:
-        os.system('cls')
-        print('\nPastas criadas:')
-        print('---------------------------------------------')
-        for i, pasta in enumerate(pastas, start=1):
-            #acessa as chaves do dicionário
-            nome = pasta['nome']
-            categoria = pasta['categoria']
-            fotos = pasta['qtd_fotos']
-            print(f'{i}. {nome} | Categoria: {categoria} | {fotos} foto(s)')
-        print('---------------------------------------------\n')
-        
-    voltar_app()
+            
 def criar_pasta():
     # Explicação das etapas mantida
     os.system('cls')
@@ -114,26 +99,54 @@ def criar_pasta():
             break
 
     voltar_app()
-    
-#funcao de listar pdfs, que vai estar presente na funcao criar_pdf
-def listar_pdfs(pdfs):
-    if not pdfs:
-        print('Nenhum PDF foi criado ainda.')
+
+#funçao de listar as pastas que vai estar presente na funcao criar_pasta 
+def listar_pastas(pastas):
+    if not pastas:
+        print('Nenhuma pasta foi criada ainda.')
         voltar_app()
     else:
         os.system('cls')
-        print('\nPDFs criados:')
+        print('\nPastas criadas:')
         print('---------------------------------------------')
-        for i, pdf in enumerate(pdfs, start=1):
-            #acesso as chaves do dicionário
-            nome = pdf['nome']
-            paginas = pdf['paginas']
-            
-            print(f'{i}. {nome}.pdf ({paginas} página(s))')
-        print('---------------------------------------------\n')
-        
+        for i, pasta in enumerate(pastas, start=1):
+            #acessa as chaves do dicionário
+            nome = pasta['nome']
+            categoria = pasta['categoria']
+            fotos = pasta['qtd_fotos']
+            print(f'{i}. {nome} | Categoria: {categoria} | {fotos} foto(s)')
+        print('---------------------------------------------\n')    
+
     voltar_app()
-    
+
+#funçao de apagar pastas
+def apagar_pasta(pastas):
+    if not pastas:
+        print('Nenhuma pasta foi criada ainda.')
+        voltar_app()
+    else:
+        os.system('cls')
+        for pasta in pastas:
+            print(f'Pasta: {pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
+
+    #pergunta ao usuário qual pasta deseja apagar, entao percorre as pastas e deleta a pasta correspondente
+        remocao = input('Digite o nome da pasta que deseja apagar (ou deixe em branco para cancelar): ').strip()
+        if not remocao:
+            print('Operação cancelada.')
+            voltar_app()
+            return
+        else:
+            for pasta in pastas:
+                if pasta['nome'] == remocao:
+                    del pastas[pastas.index(pasta)]
+                    print(f'Pasta "{remocao}" apagada com sucesso!')
+                    voltar_app()
+                    return
+            print(f'Erro: A pasta "{remocao}" não foi encontrada.')
+            voltar_app()
+            return
+
+
 def criar_pdf():
     #explicação da função de pdf
     os.system('cls')
@@ -194,6 +207,51 @@ def criar_pdf():
 
     voltar_app()
 
+#funcao de listar pdfs, que vai estar presente na funcao criar_pdf
+def listar_pdfs(pdfs):
+    if not pdfs:
+        print('Nenhum PDF foi criado ainda.')
+        voltar_app()
+    else:
+        os.system('cls')
+        print('\nPDFs criados:')
+        print('---------------------------------------------')
+        for i, pdf in enumerate(pdfs, start=1):
+            #acesso as chaves do dicionário
+            nome = pdf['nome']
+            paginas = pdf['paginas']
+            
+            print(f'{i}. {nome}.pdf ({paginas} página(s))')
+        print('---------------------------------------------\n')
+        
+    voltar_app()
+
+def apagar_pdf(pdfs):
+    if not pdfs:
+        print('Nenhum PDF foi criado ainda.')
+        voltar_app()
+    else:
+        os.system('cls')
+        for pdf in pdfs:
+            print(f'PDF: {pdf["nome"]} | Páginas: {pdf["paginas"]}')
+
+    #pergunta ao usuário qual PDF deseja apagar, entao percorre os PDFs e deleta o PDF correspondente
+        remocao = input('Digite o nome do PDF que deseja apagar (ou deixe em branco para cancelar): ').strip()
+        if not remocao:
+            print('Operação cancelada.')
+            voltar_app()
+            return
+        else:
+            for pdf in pdfs:
+                if pdf['nome'] == remocao:
+                    del pdfs[pdfs.index(pdf)]
+                    print(f'PDF "{remocao}" apagado com sucesso!')
+                    voltar_app()
+                    return
+            print(f'Erro: O PDF "{remocao}" não foi encontrado.')
+            voltar_app()
+            return
+
 #funçao para escolher a opçao
 def escolher_opcao():
     print('=============================================')
@@ -208,10 +266,14 @@ def escolher_opcao():
         elif opcao == 3:
             listar_pastas(pastas)
         elif opcao == 4:
-            criar_pdf()
+            apagar_pasta(pastas)
         elif opcao == 5:
-            listar_pdfs(pdfs)
+            criar_pdf()
         elif opcao == 6:
+            listar_pdfs(pdfs)
+        elif opcao == 7:
+            apagar_pdf(pdfs)
+        elif opcao == 8:
             finalizar_app()
         else:
             opcao_invalida()
@@ -225,6 +287,4 @@ def main():
     exibir_opcoes()
     escolher_opcao()
 
-#chamei a ordem
-if __name__ == "__main__":
-    main()
+main()
