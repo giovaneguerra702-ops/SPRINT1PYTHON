@@ -10,6 +10,37 @@ def carregar_dados(caminho):
             return dados if isinstance(dados, list) else []
     except (FileNotFoundError, json.JSONDecodeError):
         return []
+    
+#carregamento no json para informaçoes novas
+def salvar_dados(caminho, dados):
+    with open(caminho, 'w', encoding='utf-8') as arquivo:
+        json.dump(dados, arquivo, ensure_ascii=False, indent=4)
+
+#funcao que vinha se repetindo, para pedir quantidade de fotos ou paginas
+def pedir_quantidade(mensagem, padrao):
+    while True:
+        try:
+            quantidade = int(input(mensagem).strip() or padrao)
+            if quantidade < 0:
+                raise ValueError
+            return quantidade
+        except ValueError:
+            print('Erro: informe um número inteiro não negativo.\n')
+
+#funçao para listar, serve para pastas e pdfs, recebe o arquivo, mensagem de erro, titulo e a funçao de formataçao
+def listar(arquivo, mensagem_vazia, titulo, formatar):
+    if not arquivo:
+        print(mensagem_vazia)
+        voltar_app()
+        return
+
+    os.system('cls')
+    print(f'\n{titulo}:')
+    print('---------------------------------------------')
+    for indice, registro in enumerate(arquivo, start=1):
+        print(f'{indice}. {formatar(registro)}')
+    print('---------------------------------------------\n')
+    voltar_app()
 
 #carrega os dados de pastas e pdfs dos arquivos JSON, para posterior manipulação
 pastas = carregar_dados('pastas.json')
@@ -55,7 +86,7 @@ def motivo_propostas():
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
             
-def criar_pasta():
+def criar_pasta(pastas):
     # Explicação das etapas mantida
     os.system('cls')
     print('Imagine que Você tirou uma foto de uma lousa com uma materia especifica, porem anteriormente você já tinha tirado uma foto a um tempo atras da mesma materia, e agora você quer organizar suas fotos, para isso você pode criar uma pasta com o nome da matéria e colocar as fotos dentro dela ou deixar que o aparelho faça isso automaticamente, assim fica mais fácil de encontrar as fotos depois.\n')
@@ -86,13 +117,10 @@ def criar_pasta():
             continue
         #pede informações adicionais para compor o dicionário
         categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
-        fotos = int(input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0)
-        if fotos < 0: #verificaçao das entradas do usuario para fotos
-            print('Erro: A quantidade de fotos não pode ser negativa.\n')
-            continue
-        elif type(fotos) != int:
-            print('Erro: A quantidade de fotos deve ser um número inteiro não negativo.\n')
-            continue
+        fotos = pedir_quantidade(
+            'Digite a quantidade de fotos (ou deixe em branco para 0): ',
+            0
+        )
         #cria a estrutura do dicionário
         nova_pasta = {
             'nome': nome_pasta,
@@ -100,8 +128,7 @@ def criar_pasta():
             'qtd_fotos': fotos
         }
         pastas.append(nova_pasta)#adiciona a nova pasta à lista de pastas
-        with open('pastas.json', 'w', encoding='utf-8') as f:
-            json.dump(pastas, f, ensure_ascii=False, indent=4)
+        salvar_dados('pastas.json', pastas)
 
         print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
 
@@ -109,25 +136,6 @@ def criar_pasta():
         criar_outra = input('Deseja criar outra pasta? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
             break
-
-    voltar_app()
-
-#funçao de listar as pastas que vai estar presente na funcao criar_pasta 
-def listar_pastas(pastas):
-    if not pastas:
-        print('Nenhuma pasta foi criada ainda.')
-        voltar_app()
-    else:
-        os.system('cls')
-        print('\nPastas criadas:')
-        print('---------------------------------------------')
-        for i, pasta in enumerate(pastas, start=1):
-            #acessa as chaves do dicionário
-            nome = pasta['nome']
-            categoria = pasta['categoria']
-            fotos = pasta['qtd_fotos']
-            print(f'{i}. {nome} | Categoria: {categoria} | {fotos} foto(s)')
-        print('---------------------------------------------\n')    
 
     voltar_app()
 
@@ -151,8 +159,7 @@ def apagar_pasta(pastas):
             for pasta in pastas:
                 if pasta['nome'] == remocao:
                     del pastas[pastas.index(pasta)]
-                    with open('pastas.json', 'w', encoding='utf-8') as f:
-                        json.dump(pastas, f, ensure_ascii=False, indent=4)
+                    salvar_dados('pastas.json', pastas)
 
                     print(f'Pasta "{remocao}" apagada com sucesso!')
                     voltar_app()
@@ -162,7 +169,7 @@ def apagar_pasta(pastas):
             return
 
 
-def criar_pdf():
+def criar_pdf(pdfs):
     #explicação da função de pdf
     os.system('cls')
     print('Imagine que Você tirou uma foto de um exercicio ou ate mesmo de materias, e agora você quer criar um arquivo PDF para organizar suas fotos!\n')
@@ -199,21 +206,17 @@ def criar_pdf():
                 sufixo = f"{nome_pdf}_{contador}"
             nome_pdf = sufixo
         #pede quantidade de páginas para simular o PDF gerado
-        paginas = int(input('Quantidade de fotos/páginas convertidas(ou nada para um): ') or 1)
-        if paginas < 0: #verificaçao das entradas do usuario para paginas
-            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
-            continue
-        elif type(paginas) != int:
-            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
-            continue
+        paginas = pedir_quantidade(
+            'Quantidade de fotos/páginas convertidas (ou nada para uma): ',
+            1
+        )
         #cria a estrutura do dicionário
         novo_pdf = {
             'nome': nome_pdf,
             'paginas': paginas
         }
         pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
-        with open('pdfs.json', 'w', encoding='utf-8') as f:
-            json.dump(pdfs, f, ensure_ascii=False, indent=4)
+        salvar_dados('pdfs.json', pdfs)
         print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com {paginas} página(s)!\n')
 
         #criar outro pdf se quiser
@@ -223,24 +226,6 @@ def criar_pdf():
 
     voltar_app()
 
-#funcao de listar pdfs, que vai estar presente na funcao criar_pdf
-def listar_pdfs(pdfs):
-    if not pdfs:
-        print('Nenhum PDF foi criado ainda.')
-        voltar_app()
-    else:
-        os.system('cls')
-        print('\nPDFs criados:')
-        print('---------------------------------------------')
-        for i, pdf in enumerate(pdfs, start=1):
-            #acesso as chaves do dicionário
-            nome = pdf['nome']
-            paginas = pdf['paginas']
-            
-            print(f'{i}. {nome}.pdf ({paginas} página(s))')
-        print('---------------------------------------------\n')
-        
-    voltar_app()
 
 def apagar_pdf(pdfs):
     if not pdfs:
@@ -280,20 +265,28 @@ def escolher_opcao():
         if opcao == 1:
             motivo_propostas()
         elif opcao == 2:
-            criar_pasta()
+            criar_pasta(pastas)
         elif opcao == 3:
-            listar_pastas(pastas)
+            listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',
+                    lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)' #lambda funciona como uma função anônima para formatar a saída das pastas 
+                    #(anotação pessoal, se quiser pule) usamos lambda para criar uma função simples e rápida que recebe um dicionário de pasta e retorna uma string formatada com as informações da pasta, precisei usar lambda porque a função listar espera uma função de formatação como argumento, e lambda é uma maneira conveniente de criar funções pequenas e específicas para esse propósito.
+                )
         elif opcao == 4:
             apagar_pasta(pastas)
         elif opcao == 5:
-            criar_pdf()
+            criar_pdf(pdfs)
         elif opcao == 6:
-            listar_pdfs(pdfs)
+            listar(pdfs,'Nenhum PDF foi criado ainda.','PDFs criados',
+                    lambda pdf: f'{pdf["nome"]}.pdf ({pdf["paginas"]} página(s))' #lambda funciona como uma função anônima para formatar a saída dos PDFs
+                    #(anotação pessoal, se quiser pule) usamos lambda para criar uma função simples e rápida que recebe um dicionário de PDF e retorna uma string formatada com as informações do PDF, precisei usar lambda porque a função listar espera uma função de formatação como argumento, e lambda é uma maneira conveniente de criar funções pequenas e específicas para esse propósito.
+                )
         elif opcao == 7:
             apagar_pdf(pdfs)
         elif opcao == 8:
             finalizar_app()
-    except:
+        else:
+            opcao_invalida()
+    except ValueError:
         opcao_invalida()
 
 #criei a ordem
