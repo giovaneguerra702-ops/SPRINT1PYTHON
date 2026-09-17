@@ -1,6 +1,9 @@
 #biblioteca que limpa o terminal
 import os #os.system('cls')
+#biblioteca para manipular arquivos JSON
 import json
+#biblioteca para fazer requisições HTTP
+import requests
 
 #leitura dos arquivos JSON, caso nao exista, cria um arquivo vazio
 def carregar_dados(caminho):
@@ -82,7 +85,7 @@ def voltar_app():
 def motivo_propostas():
     os.system('cls')
     print('O motivo para as propostas de funcionalidades relacionadas à organização de fotos e criação de PDFs a partir de imagens capturadas com a câmera do celular é proporcionar uma experiência mais eficiente e prática para os usuários, neste caso estudantes fulltime. Essas funcionalidades visam facilitar a gestão e o acesso às fotos, especialmente aquelas relacionadas a conteúdos educacionais, como anotações em lousas, exercícios e materiais de estudo.\n')
-    print('Ao permitir a criação automática de pastas com base no conteúdo das fotos, os usuários podem organizar suas imagens de forma intuitiva, tornando mais fácil encontrar e acessar as fotos posteriormente. Além disso, a funcionalidade de gerar PDFs a partir das imagens capturadas oferece uma maneira rápida e conveniente de transformar fotos de exercícios ou anotações em documentos editáveis, facilitando o estudo e a revisão do material.\n')
+    print('Ao permitir a criação de pastas com base no conteúdo das fotos, os usuários podem organizar suas imagens de forma intuitiva, tornando mais fácil encontrar e acessar as fotos posteriormente. Além disso, a funcionalidade de gerar PDFs a partir das imagens capturadas oferece uma maneira rápida e conveniente de transformar fotos de exercícios ou anotações em documentos editáveis, facilitando o estudo e a revisão do material.\n')
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
             
@@ -278,7 +281,6 @@ def escolher_opcao():
         elif opcao == 6:
             listar(pdfs,'Nenhum PDF foi criado ainda.','PDFs criados',
                     lambda pdf: f'{pdf["nome"]}.pdf ({pdf["paginas"]} página(s))' #lambda funciona como uma função anônima para formatar a saída dos PDFs
-                    #(anotação pessoal, se quiser pule) usamos lambda para criar uma função simples e rápida que recebe um dicionário de PDF e retorna uma string formatada com as informações do PDF, precisei usar lambda porque a função listar espera uma função de formatação como argumento, e lambda é uma maneira conveniente de criar funções pequenas e específicas para esse propósito.
                 )
         elif opcao == 7:
             apagar_pdf(pdfs)
