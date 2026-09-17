@@ -1,9 +1,20 @@
 #biblioteca que limpa o terminal
 import os #os.system('cls')
+import json
 
-#onde fica armazenados os conteudos criados
-pastas = []
-pdfs = []
+#leitura dos arquivos JSON, caso nao exista, cria um arquivo vazio
+def carregar_dados(caminho):
+    try:
+        with open(caminho, 'r', encoding='utf-8') as arquivo:
+            dados = json.load(arquivo)
+            return dados if isinstance(dados, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+#carrega os dados de pastas e pdfs dos arquivos JSON, para posterior manipulação
+pastas = carregar_dados('pastas.json')
+pdfs = carregar_dados('pdfs.json')
+
 
 #funçao que passa o nome do app
 def nome_app():
@@ -51,8 +62,6 @@ def criar_pasta():
     input('Pressione Enter para continuar...')
     os.system('cls')
     print('Ao utilizar a câmera do celular, um ícone aparece no canto inferior da tela quando o sistema detecta conteúdo legível (como textos em lousas, documentos ou anotações). Ao clicar nesse ícone, a foto é capturada e processada, abrindo um menu de ações.\n')
-    print('A principal funcionalidade é a opção de criar uma pasta com fotos relacionadas. A partir da imagem capturada, o sistema realiza OCR para identificar o tema principal do conteúdo (por exemplo, “derivadas”) e busca automaticamente na galeria outras imagens com o mesmo contexto. Em seguida, cria uma pasta nomeada de forma correspondente (ex: “Pasta sobre Derivadas”) e organiza todas essas fotos encontradas dentro dela.\n')
-    print('Esse processo acontece de forma automática e integrada à galeria, sem a necessidade de busca e organização manual, funcionando de maneira semelhante à pesquisa inteligente, mas com organização real através da criação da pasta.\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
     
@@ -91,6 +100,9 @@ def criar_pasta():
             'qtd_fotos': fotos
         }
         pastas.append(nova_pasta)#adiciona a nova pasta à lista de pastas
+        with open('pastas.json', 'w', encoding='utf-8') as f:
+            json.dump(pastas, f, ensure_ascii=False, indent=4)
+
         print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
 
         #criar outra pasta se quiser
@@ -139,6 +151,9 @@ def apagar_pasta(pastas):
             for pasta in pastas:
                 if pasta['nome'] == remocao:
                     del pastas[pastas.index(pasta)]
+                    with open('pastas.json', 'w', encoding='utf-8') as f:
+                        json.dump(pastas, f, ensure_ascii=False, indent=4)
+
                     print(f'Pasta "{remocao}" apagada com sucesso!')
                     voltar_app()
                     return
@@ -154,7 +169,6 @@ def criar_pdf():
     input('Pressione Enter para continuar...')
     os.system('cls')
     print('Após capturar a imagem e acessar o menu de opções, o usuário pode selecionar a função “gerar PDF”.\n')
-    print('Nessa opção, o sistema utiliza reconhecimento de texto (OCR) para identificar e transcrever todo o conteúdo legível presente na imagem. Em seguida, gera automaticamente um arquivo em PDF com o texto digitalizado, preservando a estrutura original, como quebras de linha e organização do conteúdo.\n')
     print('Isso permite, por exemplo, transformar instantaneamente uma foto de exercícios ou anotações em um documento editável e organizado, facilitando o uso posterior, como leitura, estudo ou resposta das atividades\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
@@ -198,6 +212,8 @@ def criar_pdf():
             'paginas': paginas
         }
         pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
+        with open('pdfs.json', 'w', encoding='utf-8') as f:
+            json.dump(pdfs, f, ensure_ascii=False, indent=4)
         print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com {paginas} página(s)!\n')
 
         #criar outro pdf se quiser
@@ -245,6 +261,8 @@ def apagar_pdf(pdfs):
             for pdf in pdfs:
                 if pdf['nome'] == remocao:
                     del pdfs[pdfs.index(pdf)]
+                    with open('pdfs.json', 'w', encoding='utf-8') as f:
+                                json.dump(pdfs, f, ensure_ascii=False, indent=4)
                     print(f'PDF "{remocao}" apagado com sucesso!')
                     voltar_app()
                     return
@@ -275,8 +293,6 @@ def escolher_opcao():
             apagar_pdf(pdfs)
         elif opcao == 8:
             finalizar_app()
-        else:
-            opcao_invalida()
     except:
         opcao_invalida()
 
