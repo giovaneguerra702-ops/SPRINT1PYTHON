@@ -3,7 +3,11 @@ import os #os.system('cls')
 #biblioteca para manipular arquivos JSON
 import json
 #biblioteca para fazer requisições HTTP
+#para acessar a api, utilize o seguinte comando do terminal na Api.py: uvicorn Api:app --reload
 import requests
+
+#area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
+
 
 #leitura dos arquivos JSON, caso nao exista, cria um arquivo vazio
 def carregar_dados(caminho):
@@ -43,11 +47,74 @@ def listar(arquivo, mensagem_vazia, titulo, formatar):
     for indice, registro in enumerate(arquivo, start=1):
         print(f'{indice}. {formatar(registro)}')
     print('---------------------------------------------\n')
-    voltar_app()
 
 #carrega os dados de pastas e pdfs dos arquivos JSON, para posterior manipulação
 pastas = carregar_dados('pastas.json')
 pdfs = carregar_dados('pdfs.json')
+
+
+
+#area do uso da fastAPI, para consulta de área de atuação das matérias criada, a api esta localizada em Api.py
+
+
+def materias_area(escolhida):
+    url = 'http://127.0.0.1:8000'
+    materia = requests.get(url).json()
+    materia = materia.get(escolhida.lower())
+    return materia['area'] if materia else None
+
+
+def procurar_area(pastas):
+    # limpa o terminal e mostra as matérias disponíveis
+    os.system('cls')
+    print('Consulta de Área de Atuação das Matérias')
+    print('Uma simples API foi criada para fornecer informações sobre a área de atuação das matérias, permitindo que os usuários consultem rapidamente a categoria/materia escolhida da pasta \n')
+    print('As matérias disponíveis para consulta são:')
+
+    url = 'http://127.0.0.1:8000'
+    materias = requests.get(url).json()
+    for materia in materias.values():
+        print(f"- {materia['nome']}")
+
+    print('Porém caso voce escreveu a categoria com acento, a API não vai reconhecer, então na hora de escrever a categoria, escreva sem acento.\n')
+
+
+    # pergunta se o usuário deseja consultar uma pasta
+    pergunta = input('Gostaria de procurar pastas(s/n)? ').strip().lower()
+    if pergunta not in ['s', 'n']:
+        print('Opção inválida. Por favor, digite "s" ou "n".')
+        voltar_app()
+        return
+
+
+    if pergunta == 's':
+        # lista as pastas para o usuário escolher uma
+        listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
+        escolha = input('Digite o nome da pasta que deseja verificar a área: ').strip()
+        escolha_categoria = None
+
+        # procura a categoria pelo nome da pasta
+        for pasta in pastas:
+            if pasta['nome'].lower() == escolha.lower():
+                escolha_categoria = pasta['categoria']
+                break
+
+        if escolha_categoria is None:
+            print(f'A pasta "{escolha}" não foi encontrada.')
+            voltar_app()
+            return
+
+        # consulta a área da categoria na api
+        area = materias_area(escolha_categoria)
+        if area is None:
+            print(f'A categoria "{escolha_categoria}" não está cadastrada na API.')
+        else:
+            print(f'A área da pasta "{escolha}" é: {area}')
+        voltar_app()
+        return
+
+    voltar_app()
+
 
 
 #funçao que passa o nome do app
@@ -64,7 +131,8 @@ def exibir_opcoes():
     print('5- Criação de PDF')
     print('6- Listar PDFs')
     print('7- Apagar PDFs')
-    print('8- Sair\n')
+    print('8- API de Consulta de Área de Atuação das Matérias')
+    print('9- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -119,7 +187,7 @@ def criar_pasta(pastas):
             print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
             continue
         #pede informações adicionais para compor o dicionário
-        categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
+        categoria = input('Digite a categoria/matéria(Matematica, Física, Química, etc.), ou deixe em branco para "Geral", se voce quiser uma verificação da API escreva a categoria sem acento: ').strip().title() or 'Geral'
         fotos = pedir_quantidade(
             'Digite a quantidade de fotos (ou deixe em branco para 0): ',
             0
@@ -249,8 +317,8 @@ def apagar_pdf(pdfs):
             for pdf in pdfs:
                 if pdf['nome'] == remocao:
                     del pdfs[pdfs.index(pdf)]
-                    with open('pdfs.json', 'w', encoding='utf-8') as f:
-                                json.dump(pdfs, f, ensure_ascii=False, indent=4)
+                    salvar_dados('pdfs.json', pdfs)
+
                     print(f'PDF "{remocao}" apagado com sucesso!')
                     voltar_app()
                     return
@@ -274,6 +342,7 @@ def escolher_opcao():
                     lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)' #lambda funciona como uma função anônima para formatar a saída das pastas 
                     #(anotação pessoal, se quiser pule) usamos lambda para criar uma função simples e rápida que recebe um dicionário de pasta e retorna uma string formatada com as informações da pasta, precisei usar lambda porque a função listar espera uma função de formatação como argumento, e lambda é uma maneira conveniente de criar funções pequenas e específicas para esse propósito.
                 )
+            voltar_app()
         elif opcao == 4:
             apagar_pasta(pastas)
         elif opcao == 5:
@@ -282,9 +351,12 @@ def escolher_opcao():
             listar(pdfs,'Nenhum PDF foi criado ainda.','PDFs criados',
                     lambda pdf: f'{pdf["nome"]}.pdf ({pdf["paginas"]} página(s))' #lambda funciona como uma função anônima para formatar a saída dos PDFs
                 )
+            voltar_app()
         elif opcao == 7:
             apagar_pdf(pdfs)
         elif opcao == 8:
+            procurar_area(pastas)
+        elif opcao == 9:
             finalizar_app()
         else:
             opcao_invalida()

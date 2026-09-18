@@ -1,1 +1,32 @@
-[]
+[
+    {
+        "nome": "bola",
+        "categoria": "Matematica",
+        "qtd_fotos": 2
+    },
+    {
+        "nome": "hugo",
+        "categoria": "Historia",
+        "qtd_fotos": 4
+    },
+    {
+        "nome": "giovane",
+        "categoria": "Fabio",
+        "qtd_fotos": 0
+    },
+    {
+        "nome": "geo",
+        "categoria": "Geografia",
+        "qtd_fotos": 0
+    },
+    {
+        "nome": "bubu",
+        "categoria": "Português",
+        "qtd_fotos": 0
+    },
+    {
+        "nome": "pasta",
+        "categoria": "Portugues",
+        "qtd_fotos": 4
+    }
+]
