@@ -1,13 +1,16 @@
+#leia o readme antes de qualquer coisa
+
 #biblioteca que limpa o terminal
 import os #os.system('cls')
 #biblioteca para manipular arquivos JSON
 import json
+#biblioteca para remover acentos dos nomes das categorias
+import unicodedata
 #biblioteca para fazer requisições HTTP
 #para acessar a api, utilize o seguinte comando do terminal na Api.py: uvicorn Api:app --reload
 import requests
 
 #area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
-
 
 #leitura dos arquivos JSON, caso nao exista, cria um arquivo vazio
 def carregar_dados(caminho):
@@ -23,44 +26,29 @@ def salvar_dados(caminho, dados):
     with open(caminho, 'w', encoding='utf-8') as arquivo:
         json.dump(dados, arquivo, ensure_ascii=False, indent=4)
 
-#funcao que vinha se repetindo, para pedir quantidade de fotos ou paginas
-def pedir_quantidade(mensagem, padrao):
-    while True:
-        try:
-            quantidade = int(input(mensagem).strip() or padrao)
-            if quantidade < 0:
-                raise ValueError
-            return quantidade
-        except ValueError:
-            print('Erro: informe um número inteiro não negativo.\n')
-
-#funçao para listar, serve para pastas e pdfs, recebe o arquivo, mensagem de erro, titulo e a funçao de formataçao
-def listar(arquivo, mensagem_vazia, titulo, formatar):
-    if not arquivo:
-        print(mensagem_vazia)
-        voltar_app()
-        return
-
-    os.system('cls')
-    print(f'\n{titulo}:')
-    print('---------------------------------------------')
-    for indice, registro in enumerate(arquivo, start=1):
-        print(f'{indice}. {formatar(registro)}')
-    print('---------------------------------------------\n')
-
 #carrega os dados de pastas e pdfs dos arquivos JSON, para posterior manipulação
 pastas = carregar_dados('pastas.json')
 pdfs = carregar_dados('pdfs.json')
 
 
 
+
 #area do uso da fastAPI, para consulta de área de atuação das matérias criada, a api esta localizada em Api.py
+
+#tira os acentos das palavras, eu nao sei bem como funciona, mas é usado para caso o usuário utilize uma categoria com acento, a API possa reconhecer
+def normalizar_categoria(categoria):
+    categoria_sem_acento = ''.join(
+        caractere
+        for caractere in unicodedata.normalize('NFD', categoria)
+        if unicodedata.category(caractere) != 'Mn'
+    )
+    return categoria_sem_acento.strip().lower().replace(' ', '_')
 
 
 def materias_area(escolhida):
     url = 'http://127.0.0.1:8000'
     materia = requests.get(url).json()
-    materia = materia.get(escolhida.lower())
+    materia = materia.get(normalizar_categoria(escolhida))
     return materia['area'] if materia else None
 
 
@@ -76,7 +64,7 @@ def procurar_area(pastas):
     for materia in materias.values():
         print(f"- {materia['nome']}")
 
-    print('Porém caso voce escreveu a categoria com acento, a API não vai reconhecer, então na hora de escrever a categoria, escreva sem acento.\n')
+    print('A consulta reconhece categorias com ou sem acentos, mas se tiver com a escrita diferente não ira reconhecer \n')
 
 
     # pergunta se o usuário deseja consultar uma pasta
@@ -114,6 +102,7 @@ def procurar_area(pastas):
         return
 
     voltar_app()
+
 
 
 
@@ -157,6 +146,31 @@ def motivo_propostas():
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
             
+#funçao para listar, serve para pastas e pdfs, recebe o arquivo, mensagem de erro, titulo e a funçao de formataçao
+def listar(arquivo, mensagem_vazia, titulo, formatar):
+    if not arquivo:
+        print(mensagem_vazia)
+        voltar_app()
+        return
+
+    os.system('cls')
+    print(f'\n{titulo}:')
+    print('---------------------------------------------')
+    for indice, registro in enumerate(arquivo, start=1):
+        print(f'{indice}. {formatar(registro)}')
+    print('---------------------------------------------\n')
+
+#funcao que vinha se repetindo, para pedir quantidade de fotos ou paginas
+def pedir_quantidade(mensagem, padrao):
+    while True:
+        try:
+            quantidade = int(input(mensagem).strip() or padrao)
+            if quantidade < 0:
+                raise ValueError
+            return quantidade
+        except ValueError:
+            print('Erro: informe um número inteiro não negativo.\n')
+
 def criar_pasta(pastas):
     # Explicação das etapas mantida
     os.system('cls')
@@ -187,11 +201,8 @@ def criar_pasta(pastas):
             print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
             continue
         #pede informações adicionais para compor o dicionário
-        categoria = input('Digite a categoria/matéria(Matematica, Física, Química, etc.), ou deixe em branco para "Geral", se voce quiser uma verificação da API escreva a categoria sem acento: ').strip().title() or 'Geral'
-        fotos = pedir_quantidade(
-            'Digite a quantidade de fotos (ou deixe em branco para 0): ',
-            0
-        )
+        categoria = input('Digite a matéria(Matematica, Física, Química, etc.), ou deixe em branco para "Geral": ').strip().title() or 'Geral'
+        fotos = pedir_quantidade('Digite a quantidade de fotos (ou deixe em branco para 0): ',0)
         #cria a estrutura do dicionário
         nova_pasta = {
             'nome': nome_pasta,
@@ -277,10 +288,7 @@ def criar_pdf(pdfs):
                 sufixo = f"{nome_pdf}_{contador}"
             nome_pdf = sufixo
         #pede quantidade de páginas para simular o PDF gerado
-        paginas = pedir_quantidade(
-            'Quantidade de fotos/páginas convertidas (ou nada para uma): ',
-            1
-        )
+        paginas = pedir_quantidade('Quantidade de fotos/páginas convertidas (ou nada para uma): ',1)
         #cria a estrutura do dicionário
         novo_pdf = {
             'nome': nome_pdf,

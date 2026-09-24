@@ -46,6 +46,41 @@ MATERIAS = {
         "area": "Linguagens",
         "descricao": "Vocabulário, gramática, leitura e comunicação em inglês.",
     },
+    "filosofia": {
+        "nome": "Filosofia",
+        "area": "Humanas",
+        "descricao": "Pensamento crítico, ética, política e conhecimento.",
+    },
+    "sociologia": {
+        "nome": "Sociologia",
+        "area": "Humanas",
+        "descricao": "Sociedade, cultura, relações sociais e cidadania.",
+    },
+    "artes": {
+        "nome": "Artes",
+        "area": "Linguagens",
+        "descricao": "Expressões artísticas, cultura e história da arte.",
+    },
+    "educacao_fisica": {
+        "nome": "Educação Física",
+        "area": "Linguagens",
+        "descricao": "Movimento corporal, esportes, saúde e qualidade de vida.",
+    },
+    "redacao": {
+        "nome": "Redação",
+        "area": "Linguagens",
+        "descricao": "Planejamento, argumentação e produção de textos dissertativos.",
+    },
+    "programacao": {
+        "nome": "Programação",
+        "area": "Tecnologia",
+        "descricao": "Lógica, algoritmos e desenvolvimento de aplicações.",
+    },
+    "geral": {
+        "nome": "Geral",
+        "area": "Muitas Coisas KKKKKK",
+        "descricao": "Geral",
+    },
 }
 
 
