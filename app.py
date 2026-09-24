@@ -1,9 +1,110 @@
+#leia o readme antes de qualquer coisa
+
 #biblioteca que limpa o terminal
 import os #os.system('cls')
+#biblioteca para manipular arquivos JSON
+import json
+#biblioteca para remover acentos dos nomes das categorias
+import unicodedata
+#biblioteca para fazer requisições HTTP
+#para acessar a api, utilize o seguinte comando do terminal na Api.py: uvicorn Api:app --reload
+import requests
 
-#onde fica armazenados os conteudos criados
-pastas = []
-pdfs = []
+#area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
+
+#leitura dos arquivos JSON, caso nao exista, cria um arquivo vazio
+def carregar_dados(caminho):
+    try:
+        with open(caminho, 'r', encoding='utf-8') as arquivo:
+            dados = json.load(arquivo)
+            return dados if isinstance(dados, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+    
+#carregamento no json para informaçoes novas
+def salvar_dados(caminho, dados):
+    with open(caminho, 'w', encoding='utf-8') as arquivo:
+        json.dump(dados, arquivo, ensure_ascii=False, indent=4)
+
+#carrega os dados de pastas e pdfs dos arquivos JSON, para posterior manipulação
+pastas = carregar_dados('pastas.json')
+pdfs = carregar_dados('pdfs.json')
+
+
+
+
+#area do uso da fastAPI, para consulta de área de atuação das matérias criada, a api esta localizada em Api.py
+
+#tira os acentos das palavras, eu nao sei bem como funciona, mas é usado para caso o usuário utilize uma categoria com acento, a API possa reconhecer
+def normalizar_categoria(categoria):
+    categoria_sem_acento = ''.join(
+        caractere
+        for caractere in unicodedata.normalize('NFD', categoria)
+        if unicodedata.category(caractere) != 'Mn'
+    )
+    return categoria_sem_acento.strip().lower().replace(' ', '_')
+
+
+def materias_area(escolhida):
+    url = 'http://127.0.0.1:8000'
+    materia = requests.get(url).json()
+    materia = materia.get(normalizar_categoria(escolhida))
+    return materia['area'] if materia else None
+
+
+def procurar_area(pastas):
+    # limpa o terminal e mostra as matérias disponíveis
+    os.system('cls')
+    print('Consulta de Área de Atuação das Matérias')
+    print('Uma simples API foi criada para fornecer informações sobre a área de atuação das matérias, permitindo que os usuários consultem rapidamente a categoria/materia escolhida da pasta \n')
+    print('As matérias disponíveis para consulta são:')
+
+    url = 'http://127.0.0.1:8000'
+    materias = requests.get(url).json()
+    for materia in materias.values():
+        print(f"- {materia['nome']}")
+
+    print('A consulta reconhece categorias com ou sem acentos, mas se tiver com a escrita diferente não ira reconhecer \n')
+
+
+    # pergunta se o usuário deseja consultar uma pasta
+    pergunta = input('Gostaria de procurar pastas(s/n)? ').strip().lower()
+    if pergunta not in ['s', 'n']:
+        print('Opção inválida. Por favor, digite "s" ou "n".')
+        voltar_app()
+        return
+
+
+    if pergunta == 's':
+        # lista as pastas para o usuário escolher uma
+        listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
+        escolha = input('Digite o nome da pasta que deseja verificar a área: ').strip()
+        escolha_categoria = None
+
+        # procura a categoria pelo nome da pasta
+        for pasta in pastas:
+            if pasta['nome'].lower() == escolha.lower():
+                escolha_categoria = pasta['categoria']
+                break
+
+        if escolha_categoria is None:
+            print(f'A pasta "{escolha}" não foi encontrada.')
+            voltar_app()
+            return
+
+        # consulta a área da categoria na api
+        area = materias_area(escolha_categoria)
+        if area is None:
+            print(f'A categoria "{escolha_categoria}" não está cadastrada na API.')
+        else:
+            print(f'A área da pasta "{escolha}" é: {area}')
+        voltar_app()
+        return
+
+    voltar_app()
+
+
+
 
 #funçao que passa o nome do app
 def nome_app():
@@ -19,7 +120,8 @@ def exibir_opcoes():
     print('5- Criação de PDF')
     print('6- Listar PDFs')
     print('7- Apagar PDFs')
-    print('8- Sair\n')
+    print('8- API de Consulta de Área de Atuação das Matérias')
+    print('9- Sair\n')
 
 #funcao que finaliza o app
 def finalizar_app():
@@ -40,19 +142,42 @@ def voltar_app():
 def motivo_propostas():
     os.system('cls')
     print('O motivo para as propostas de funcionalidades relacionadas à organização de fotos e criação de PDFs a partir de imagens capturadas com a câmera do celular é proporcionar uma experiência mais eficiente e prática para os usuários, neste caso estudantes fulltime. Essas funcionalidades visam facilitar a gestão e o acesso às fotos, especialmente aquelas relacionadas a conteúdos educacionais, como anotações em lousas, exercícios e materiais de estudo.\n')
-    print('Ao permitir a criação automática de pastas com base no conteúdo das fotos, os usuários podem organizar suas imagens de forma intuitiva, tornando mais fácil encontrar e acessar as fotos posteriormente. Além disso, a funcionalidade de gerar PDFs a partir das imagens capturadas oferece uma maneira rápida e conveniente de transformar fotos de exercícios ou anotações em documentos editáveis, facilitando o estudo e a revisão do material.\n')
+    print('Ao permitir a criação de pastas com base no conteúdo das fotos, os usuários podem organizar suas imagens de forma intuitiva, tornando mais fácil encontrar e acessar as fotos posteriormente. Além disso, a funcionalidade de gerar PDFs a partir das imagens capturadas oferece uma maneira rápida e conveniente de transformar fotos de exercícios ou anotações em documentos editáveis, facilitando o estudo e a revisão do material.\n')
     print('Essas propostas buscam melhorar a experiência do usuário ao lidar com fotos relacionadas à educação, promovendo uma organização eficiente e um acesso mais fácil aos conteúdos capturados, contribuindo para um processo de aprendizado mais fluido e produtivo.\n')
     voltar_app()
             
-def criar_pasta():
+#funçao para listar, serve para pastas e pdfs, recebe o arquivo, mensagem de erro, titulo e a funçao de formataçao
+def listar(arquivo, mensagem_vazia, titulo, formatar):
+    if not arquivo:
+        print(mensagem_vazia)
+        voltar_app()
+        return
+
+    os.system('cls')
+    print(f'\n{titulo}:')
+    print('---------------------------------------------')
+    for indice, registro in enumerate(arquivo, start=1):
+        print(f'{indice}. {formatar(registro)}')
+    print('---------------------------------------------\n')
+
+#funcao que vinha se repetindo, para pedir quantidade de fotos ou paginas
+def pedir_quantidade(mensagem, padrao):
+    while True:
+        try:
+            quantidade = int(input(mensagem).strip() or padrao)
+            if quantidade < 0:
+                raise ValueError
+            return quantidade
+        except ValueError:
+            print('Erro: informe um número inteiro não negativo.\n')
+
+def criar_pasta(pastas):
     # Explicação das etapas mantida
     os.system('cls')
     print('Imagine que Você tirou uma foto de uma lousa com uma materia especifica, porem anteriormente você já tinha tirado uma foto a um tempo atras da mesma materia, e agora você quer organizar suas fotos, para isso você pode criar uma pasta com o nome da matéria e colocar as fotos dentro dela ou deixar que o aparelho faça isso automaticamente, assim fica mais fácil de encontrar as fotos depois.\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
     print('Ao utilizar a câmera do celular, um ícone aparece no canto inferior da tela quando o sistema detecta conteúdo legível (como textos em lousas, documentos ou anotações). Ao clicar nesse ícone, a foto é capturada e processada, abrindo um menu de ações.\n')
-    print('A principal funcionalidade é a opção de criar uma pasta com fotos relacionadas. A partir da imagem capturada, o sistema realiza OCR para identificar o tema principal do conteúdo (por exemplo, “derivadas”) e busca automaticamente na galeria outras imagens com o mesmo contexto. Em seguida, cria uma pasta nomeada de forma correspondente (ex: “Pasta sobre Derivadas”) e organiza todas essas fotos encontradas dentro dela.\n')
-    print('Esse processo acontece de forma automática e integrada à galeria, sem a necessidade de busca e organização manual, funcionando de maneira semelhante à pesquisa inteligente, mas com organização real através da criação da pasta.\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
     
@@ -76,14 +201,8 @@ def criar_pasta():
             print(f'Erro: Uma pasta com o nome "{nome_pasta}" já existe. Escolha um nome diferente.\n')
             continue
         #pede informações adicionais para compor o dicionário
-        categoria = input('Digite a categoria/matéria (ou deixe em branco para "Geral"): ').strip() or 'Geral'
-        fotos = int(input('Digite a quantidade de fotos (ou deixe em branco para 0): ').strip() or 0)
-        if fotos < 0: #verificaçao das entradas do usuario para fotos
-            print('Erro: A quantidade de fotos não pode ser negativa.\n')
-            continue
-        elif type(fotos) != int:
-            print('Erro: A quantidade de fotos deve ser um número inteiro não negativo.\n')
-            continue
+        categoria = input('Digite a matéria(Matematica, Física, Química, etc.), ou deixe em branco para "Geral": ').strip().title() or 'Geral'
+        fotos = pedir_quantidade('Digite a quantidade de fotos (ou deixe em branco para 0): ',0)
         #cria a estrutura do dicionário
         nova_pasta = {
             'nome': nome_pasta,
@@ -91,31 +210,14 @@ def criar_pasta():
             'qtd_fotos': fotos
         }
         pastas.append(nova_pasta)#adiciona a nova pasta à lista de pastas
+        salvar_dados('pastas.json', pastas)
+
         print(f'\nPasta "{nome_pasta}" [{categoria}] criada com sucesso!\n')
 
         #criar outra pasta se quiser
         criar_outra = input('Deseja criar outra pasta? (s/n): ')
         if criar_outra.lower() not in ('s', 'sim'):
             break
-
-    voltar_app()
-
-#funçao de listar as pastas que vai estar presente na funcao criar_pasta 
-def listar_pastas(pastas):
-    if not pastas:
-        print('Nenhuma pasta foi criada ainda.')
-        voltar_app()
-    else:
-        os.system('cls')
-        print('\nPastas criadas:')
-        print('---------------------------------------------')
-        for i, pasta in enumerate(pastas, start=1):
-            #acessa as chaves do dicionário
-            nome = pasta['nome']
-            categoria = pasta['categoria']
-            fotos = pasta['qtd_fotos']
-            print(f'{i}. {nome} | Categoria: {categoria} | {fotos} foto(s)')
-        print('---------------------------------------------\n')    
 
     voltar_app()
 
@@ -139,6 +241,8 @@ def apagar_pasta(pastas):
             for pasta in pastas:
                 if pasta['nome'] == remocao:
                     del pastas[pastas.index(pasta)]
+                    salvar_dados('pastas.json', pastas)
+
                     print(f'Pasta "{remocao}" apagada com sucesso!')
                     voltar_app()
                     return
@@ -147,14 +251,13 @@ def apagar_pasta(pastas):
             return
 
 
-def criar_pdf():
+def criar_pdf(pdfs):
     #explicação da função de pdf
     os.system('cls')
     print('Imagine que Você tirou uma foto de um exercicio ou ate mesmo de materias, e agora você quer criar um arquivo PDF para organizar suas fotos!\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
     print('Após capturar a imagem e acessar o menu de opções, o usuário pode selecionar a função “gerar PDF”.\n')
-    print('Nessa opção, o sistema utiliza reconhecimento de texto (OCR) para identificar e transcrever todo o conteúdo legível presente na imagem. Em seguida, gera automaticamente um arquivo em PDF com o texto digitalizado, preservando a estrutura original, como quebras de linha e organização do conteúdo.\n')
     print('Isso permite, por exemplo, transformar instantaneamente uma foto de exercícios ou anotações em um documento editável e organizado, facilitando o uso posterior, como leitura, estudo ou resposta das atividades\n')
     input('Pressione Enter para continuar...')
     os.system('cls')
@@ -185,19 +288,14 @@ def criar_pdf():
                 sufixo = f"{nome_pdf}_{contador}"
             nome_pdf = sufixo
         #pede quantidade de páginas para simular o PDF gerado
-        paginas = int(input('Quantidade de fotos/páginas convertidas(ou nada para um): ') or 1)
-        if paginas < 0: #verificaçao das entradas do usuario para paginas
-            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
-            continue
-        elif type(paginas) != int:
-            print('Erro: A quantidade de páginas deve ser um número inteiro não negativo.\n')
-            continue
+        paginas = pedir_quantidade('Quantidade de fotos/páginas convertidas (ou nada para uma): ',1)
         #cria a estrutura do dicionário
         novo_pdf = {
             'nome': nome_pdf,
             'paginas': paginas
         }
         pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
+        salvar_dados('pdfs.json', pdfs)
         print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com {paginas} página(s)!\n')
 
         #criar outro pdf se quiser
@@ -207,24 +305,6 @@ def criar_pdf():
 
     voltar_app()
 
-#funcao de listar pdfs, que vai estar presente na funcao criar_pdf
-def listar_pdfs(pdfs):
-    if not pdfs:
-        print('Nenhum PDF foi criado ainda.')
-        voltar_app()
-    else:
-        os.system('cls')
-        print('\nPDFs criados:')
-        print('---------------------------------------------')
-        for i, pdf in enumerate(pdfs, start=1):
-            #acesso as chaves do dicionário
-            nome = pdf['nome']
-            paginas = pdf['paginas']
-            
-            print(f'{i}. {nome}.pdf ({paginas} página(s))')
-        print('---------------------------------------------\n')
-        
-    voltar_app()
 
 def apagar_pdf(pdfs):
     if not pdfs:
@@ -245,6 +325,8 @@ def apagar_pdf(pdfs):
             for pdf in pdfs:
                 if pdf['nome'] == remocao:
                     del pdfs[pdfs.index(pdf)]
+                    salvar_dados('pdfs.json', pdfs)
+
                     print(f'PDF "{remocao}" apagado com sucesso!')
                     voltar_app()
                     return
@@ -262,22 +344,31 @@ def escolher_opcao():
         if opcao == 1:
             motivo_propostas()
         elif opcao == 2:
-            criar_pasta()
+            criar_pasta(pastas)
         elif opcao == 3:
-            listar_pastas(pastas)
+            listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',
+                    lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)' #lambda funciona como uma função anônima para formatar a saída das pastas 
+                    #(anotação pessoal, se quiser pule) usamos lambda para criar uma função simples e rápida que recebe um dicionário de pasta e retorna uma string formatada com as informações da pasta, precisei usar lambda porque a função listar espera uma função de formatação como argumento, e lambda é uma maneira conveniente de criar funções pequenas e específicas para esse propósito.
+                )
+            voltar_app()
         elif opcao == 4:
             apagar_pasta(pastas)
         elif opcao == 5:
-            criar_pdf()
+            criar_pdf(pdfs)
         elif opcao == 6:
-            listar_pdfs(pdfs)
+            listar(pdfs,'Nenhum PDF foi criado ainda.','PDFs criados',
+                    lambda pdf: f'{pdf["nome"]}.pdf ({pdf["paginas"]} página(s))' #lambda funciona como uma função anônima para formatar a saída dos PDFs
+                )
+            voltar_app()
         elif opcao == 7:
             apagar_pdf(pdfs)
         elif opcao == 8:
+            procurar_area(pastas)
+        elif opcao == 9:
             finalizar_app()
         else:
             opcao_invalida()
-    except:
+    except ValueError:
         opcao_invalida()
 
 #criei a ordem
