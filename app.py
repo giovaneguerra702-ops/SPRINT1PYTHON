@@ -32,28 +32,59 @@ pdfs = carregar_dados('pdfs.json')
 
 #area de uso da API
 def ler_imagem(imagem):
+    caminho_imagem = os.path.join('images', imagem)
+    if not os.path.isfile(caminho_imagem):
+        print(f'Erro: A imagem "{imagem}" não foi encontrada na pasta "images".')
+        voltar_app()
+        return
+
+    imagem_cv = cv2.imread(caminho_imagem)
+    if imagem_cv is None:
+        print(f'Erro: Não foi possível abrir a imagem "{imagem}".')
+        voltar_app()
+        return
 
     #inicializa o leitor OCR para português
     reader = easyocr.Reader(['pt'])
-    resultado = reader.readtext(f'images/{imagem}')
+    resultado = reader.readtext(caminho_imagem)
 
-    #carrega a imagem usando OpenCV
-    imagem = cv2.imread(f'images/{imagem}')
+    if not resultado:
+        print('Nenhum texto foi encontrado na imagem.')
+        voltar_app()
+        return
 
     for detection in resultado:
         top_left = tuple(detection[0][0])
         bottom_right = tuple(detection[0][2])
         text = detection[1]
+        print(top_left, bottom_right, text)  # Exibe as coordenadas e o texto detectado
 
         #desenha um retângulo ao redor do texto detectado
-        imagem = cv2.rectangle(imagem, top_left, bottom_right, (0, 255, 0), 2)
+        imagem_cv = cv2.rectangle(imagem_cv, top_left, bottom_right, (0, 255, 0), 2)
         #coloca o texto detectado acima do retângulo
-        imagem = cv2.putText(imagem, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        imagem_cv = cv2.putText(imagem_cv, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     #converte a imagem de BGR para RGB para exibição correta com Matplotlib
-    plt.imshow(cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB))
+    plt.imshow(cv2.cvtColor(imagem_cv, cv2.COLOR_BGR2RGB))
     plt.axis('off')  # Desativa os eixos
-    plt.show()    
+    plt.show()
+
+    print('\nTexto extraído da imagem:')
+    for detection in resultado:
+        print(detection[1])  # Exibe apenas o texto detectado
+    print('---------------------------------------------')
+
+    input('Pressione Enter para continuar...')
+    os.system('cls')
+    print('Agora pode ser possivel criar um pdf apartir dessa leitura\n')
+    nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ').strip()
+    novo_pdf = {
+                'nome': nome_pdf,
+                'paginas': 1
+            }
+    pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
+    salvar_dados('pdfs.json', pdfs)
+    print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com uma página!\n')
     voltar_app()
 
 
@@ -317,8 +348,8 @@ def escolher_opcao():
             apagar_pdf(pdfs)
         elif opcao == 8:
                 os.system('cls')
-                print('Para um estudante é muito importante poder importar seus estudos para o celular')
-                print('Usando a tecnologia OCR é possivel transcrever coisas escritas na lousa para o celular')
+                print('Para um estudante é muito importante poder importar seus estudos para o celular \n')
+                print('Usando a tecnologia OCR é possivel transcrever coisas escritas na lousa para o celular \n')
                 print('Faça um teste colocando a foto no arquivo images e depois digite o nome da imagem com a extensão, ex: lousa.jpg\n')
                 imagem = input('Coloque a imagem na pasta "images" e digite o nome da imagem com a extensão (ex: lousa.jpg): ').strip()
                 ler_imagem(imagem)
