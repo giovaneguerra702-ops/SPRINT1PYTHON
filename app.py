@@ -77,7 +77,7 @@ def ler_imagem(imagem):
     input('Pressione Enter para continuar...')
     os.system('cls')
     print('Agora pode ser possivel criar um pdf apartir dessa leitura\n')
-    nome_pdf = input('Digite o nome do arquivo PDF (sem ".pdf"): ').strip()
+    nome_pdf = imagem.rsplit('.', 1)[0]  # Remove a extensão do nome do arquivo
     novo_pdf = {
                 'nome': nome_pdf,
                 'paginas': 1
