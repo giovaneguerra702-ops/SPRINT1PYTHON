@@ -1,14 +1,12 @@
-#leia o readme antes de qualquer coisa
-
 #biblioteca que limpa o terminal
 import os #os.system('cls')
 #biblioteca para manipular arquivos JSON
 import json
-#biblioteca para remover acentos dos nomes das categorias
-import unicodedata
 #biblioteca para fazer requisições HTTP
-#para acessar a api, utilize o seguinte comando do terminal na Api.py: uvicorn Api:app --reload
 import requests
+import easyocr
+import cv2
+from matplotlib import pyplot as plt
 
 #area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
 
@@ -32,75 +30,30 @@ pdfs = carregar_dados('pdfs.json')
 
 
 
+#area de uso da API
+def ler_imagem(imagem):
 
-#area do uso da fastAPI, para consulta de área de atuação das matérias criada, a api esta localizada em Api.py
+    #inicializa o leitor OCR para português
+    reader = easyocr.Reader(['pt'])
+    resultado = reader.readtext(f'images/{imagem}')
 
-#tira os acentos das palavras, eu nao sei bem como funciona, mas é usado para caso o usuário utilize uma categoria com acento, a API possa reconhecer
-def normalizar_categoria(categoria):
-    categoria_sem_acento = ''.join(
-        caractere
-        for caractere in unicodedata.normalize('NFD', categoria)
-        if unicodedata.category(caractere) != 'Mn'
-    )
-    return categoria_sem_acento.strip().lower().replace(' ', '_')
+    #carrega a imagem usando OpenCV
+    imagem = cv2.imread(f'images/{imagem}')
 
+    for detection in resultado:
+        top_left = tuple(detection[0][0])
+        bottom_right = tuple(detection[0][2])
+        text = detection[1]
 
-def materias_area(escolhida):
-    url = 'http://127.0.0.1:8000'
-    materia = requests.get(url).json()
-    materia = materia.get(normalizar_categoria(escolhida))
-    return materia['area'] if materia else None
+        #desenha um retângulo ao redor do texto detectado
+        imagem = cv2.rectangle(imagem, top_left, bottom_right, (0, 255, 0), 2)
+        #coloca o texto detectado acima do retângulo
+        imagem = cv2.putText(imagem, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-
-def procurar_area(pastas):
-    # limpa o terminal e mostra as matérias disponíveis
-    os.system('cls')
-    print('Consulta de Área de Atuação das Matérias')
-    print('Uma simples API foi criada para fornecer informações sobre a área de atuação das matérias, permitindo que os usuários consultem rapidamente a categoria/materia escolhida da pasta \n')
-    print('As matérias disponíveis para consulta são:')
-
-    url = 'http://127.0.0.1:8000'
-    materias = requests.get(url).json()
-    for materia in materias.values():
-        print(f"- {materia['nome']}")
-
-    print('A consulta reconhece categorias com ou sem acentos, mas se tiver com a escrita diferente não ira reconhecer \n')
-
-
-    # pergunta se o usuário deseja consultar uma pasta
-    pergunta = input('Gostaria de procurar pastas(s/n)? ').strip().lower()
-    if pergunta not in ['s', 'n']:
-        print('Opção inválida. Por favor, digite "s" ou "n".')
-        voltar_app()
-        return
-
-
-    if pergunta == 's':
-        # lista as pastas para o usuário escolher uma
-        listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
-        escolha = input('Digite o nome da pasta que deseja verificar a área: ').strip()
-        escolha_categoria = None
-
-        # procura a categoria pelo nome da pasta
-        for pasta in pastas:
-            if pasta['nome'].lower() == escolha.lower():
-                escolha_categoria = pasta['categoria']
-                break
-
-        if escolha_categoria is None:
-            print(f'A pasta "{escolha}" não foi encontrada.')
-            voltar_app()
-            return
-
-        # consulta a área da categoria na api
-        area = materias_area(escolha_categoria)
-        if area is None:
-            print(f'A categoria "{escolha_categoria}" não está cadastrada na API.')
-        else:
-            print(f'A área da pasta "{escolha}" é: {area}')
-        voltar_app()
-        return
-
+    #converte a imagem de BGR para RGB para exibição correta com Matplotlib
+    plt.imshow(cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB))
+    plt.axis('off')  # Desativa os eixos
+    plt.show()    
     voltar_app()
 
 
@@ -120,7 +73,7 @@ def exibir_opcoes():
     print('5- Criação de PDF')
     print('6- Listar PDFs')
     print('7- Apagar PDFs')
-    print('8- API de Consulta de Área de Atuação das Matérias')
+    print('8- API')
     print('9- Sair\n')
 
 #funcao que finaliza o app
@@ -363,7 +316,12 @@ def escolher_opcao():
         elif opcao == 7:
             apagar_pdf(pdfs)
         elif opcao == 8:
-            procurar_area(pastas)
+                os.system('cls')
+                print('Para um estudante é muito importante poder importar seus estudos para o celular')
+                print('Usando a tecnologia OCR é possivel transcrever coisas escritas na lousa para o celular')
+                print('Faça um teste colocando a foto no arquivo images e depois digite o nome da imagem com a extensão, ex: lousa.jpg\n')
+                imagem = input('Coloque a imagem na pasta "images" e digite o nome da imagem com a extensão (ex: lousa.jpg): ').strip()
+                ler_imagem(imagem)
         elif opcao == 9:
             finalizar_app()
         else:
