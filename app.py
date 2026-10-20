@@ -1,14 +1,12 @@
-#leia o readme antes de qualquer coisa
-
 #biblioteca que limpa o terminal
 import os #os.system('cls')
 #biblioteca para manipular arquivos JSON
 import json
-#biblioteca para remover acentos dos nomes das categorias
-import unicodedata
 #biblioteca para fazer requisições HTTP
-#para acessar a api, utilize o seguinte comando do terminal na Api.py: uvicorn Api:app --reload
 import requests
+import easyocr
+import cv2
+from matplotlib import pyplot as plt
 
 #area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
 
@@ -32,75 +30,61 @@ pdfs = carregar_dados('pdfs.json')
 
 
 
+#area de uso da API
+def ler_imagem(imagem):
+    caminho_imagem = os.path.join('images', imagem)
+    if not os.path.isfile(caminho_imagem):
+        print(f'Erro: A imagem "{imagem}" não foi encontrada na pasta "images".')
+        voltar_app()
+        return
 
-#area do uso da fastAPI, para consulta de área de atuação das matérias criada, a api esta localizada em Api.py
+    imagem_cv = cv2.imread(caminho_imagem)
+    if imagem_cv is None:
+        print(f'Erro: Não foi possível abrir a imagem "{imagem}".')
+        voltar_app()
+        return
 
-#tira os acentos das palavras, eu nao sei bem como funciona, mas é usado para caso o usuário utilize uma categoria com acento, a API possa reconhecer
-def normalizar_categoria(categoria):
-    categoria_sem_acento = ''.join(
-        caractere
-        for caractere in unicodedata.normalize('NFD', categoria)
-        if unicodedata.category(caractere) != 'Mn'
-    )
-    return categoria_sem_acento.strip().lower().replace(' ', '_')
+    #inicializa o leitor OCR para português
+    reader = easyocr.Reader(['pt'])
+    resultado = reader.readtext(caminho_imagem)
 
+    if not resultado:
+        print('Nenhum texto foi encontrado na imagem.')
+        voltar_app()
+        return
 
-def materias_area(escolhida):
-    url = 'http://127.0.0.1:8000'
-    materia = requests.get(url).json()
-    materia = materia.get(normalizar_categoria(escolhida))
-    return materia['area'] if materia else None
+    for detection in resultado:
+        top_left = tuple(detection[0][0])
+        bottom_right = tuple(detection[0][2])
+        text = detection[1]
+        print(top_left, bottom_right, text)  # Exibe as coordenadas e o texto detectado
 
+        #desenha um retângulo ao redor do texto detectado
+        imagem_cv = cv2.rectangle(imagem_cv, top_left, bottom_right, (0, 255, 0), 2)
+        #coloca o texto detectado acima do retângulo
+        imagem_cv = cv2.putText(imagem_cv, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-def procurar_area(pastas):
-    # limpa o terminal e mostra as matérias disponíveis
+    #converte a imagem de BGR para RGB para exibição correta com Matplotlib
+    plt.imshow(cv2.cvtColor(imagem_cv, cv2.COLOR_BGR2RGB))
+    plt.axis('off')  # Desativa os eixos
+    plt.show()
+
+    print('\nTexto extraído da imagem:')
+    for detection in resultado:
+        print(detection[1])  # Exibe apenas o texto detectado
+    print('---------------------------------------------')
+
+    input('Pressione Enter para continuar...')
     os.system('cls')
-    print('Consulta de Área de Atuação das Matérias')
-    print('Uma simples API foi criada para fornecer informações sobre a área de atuação das matérias, permitindo que os usuários consultem rapidamente a categoria/materia escolhida da pasta \n')
-    print('As matérias disponíveis para consulta são:')
-
-    url = 'http://127.0.0.1:8000'
-    materias = requests.get(url).json()
-    for materia in materias.values():
-        print(f"- {materia['nome']}")
-
-    print('A consulta reconhece categorias com ou sem acentos, mas se tiver com a escrita diferente não ira reconhecer \n')
-
-
-    # pergunta se o usuário deseja consultar uma pasta
-    pergunta = input('Gostaria de procurar pastas(s/n)? ').strip().lower()
-    if pergunta not in ['s', 'n']:
-        print('Opção inválida. Por favor, digite "s" ou "n".')
-        voltar_app()
-        return
-
-
-    if pergunta == 's':
-        # lista as pastas para o usuário escolher uma
-        listar(pastas,'Nenhuma pasta foi criada ainda.','Pastas criadas',lambda pasta: f'{pasta["nome"]} | Categoria: {pasta["categoria"]} | {pasta["qtd_fotos"]} foto(s)')
-        escolha = input('Digite o nome da pasta que deseja verificar a área: ').strip()
-        escolha_categoria = None
-
-        # procura a categoria pelo nome da pasta
-        for pasta in pastas:
-            if pasta['nome'].lower() == escolha.lower():
-                escolha_categoria = pasta['categoria']
-                break
-
-        if escolha_categoria is None:
-            print(f'A pasta "{escolha}" não foi encontrada.')
-            voltar_app()
-            return
-
-        # consulta a área da categoria na api
-        area = materias_area(escolha_categoria)
-        if area is None:
-            print(f'A categoria "{escolha_categoria}" não está cadastrada na API.')
-        else:
-            print(f'A área da pasta "{escolha}" é: {area}')
-        voltar_app()
-        return
-
+    print('Agora pode ser possivel criar um pdf apartir dessa leitura\n')
+    nome_pdf = imagem.rsplit('.', 1)[0]  # Remove a extensão do nome do arquivo
+    novo_pdf = {
+                'nome': nome_pdf,
+                'paginas': 1
+            }
+    pdfs.append(novo_pdf) #adiciona o novo PDF à lista de PDFs
+    salvar_dados('pdfs.json', pdfs)
+    print(f'\nArquivo "{nome_pdf}.pdf" criado com sucesso com uma página!\n')
     voltar_app()
 
 
@@ -120,7 +104,7 @@ def exibir_opcoes():
     print('5- Criação de PDF')
     print('6- Listar PDFs')
     print('7- Apagar PDFs')
-    print('8- API de Consulta de Área de Atuação das Matérias')
+    print('8- API')
     print('9- Sair\n')
 
 #funcao que finaliza o app
@@ -363,7 +347,12 @@ def escolher_opcao():
         elif opcao == 7:
             apagar_pdf(pdfs)
         elif opcao == 8:
-            procurar_area(pastas)
+                os.system('cls')
+                print('Para um estudante é muito importante poder importar seus estudos para o celular \n')
+                print('Usando a tecnologia OCR é possivel transcrever coisas escritas na lousa para o celular \n')
+                print('Faça um teste colocando a foto no arquivo images e depois digite o nome da imagem com a extensão, ex: lousa.jpg\n')
+                imagem = input('Coloque a imagem na pasta "images" e digite o nome da imagem com a extensão (ex: lousa.jpg): ').strip()
+                ler_imagem(imagem)
         elif opcao == 9:
             finalizar_app()
         else:
