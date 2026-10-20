@@ -9,12 +9,18 @@ Aplicativo de terminal para organizar pastas de estudos, cadastrar PDFs e ler te
 
 ## Instalação e execução
 
-No terminal, na pasta do projeto, instale as dependências e inicie o aplicativo:
+No terminal, dentro da pasta do projeto, crie um ambiente virtual, instale as dependências e inicie o aplicativo:
 
 ```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1   # PowerShell
+# ou: .\.venv\Scripts\activate.bat   # CMD
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python app.py
 ```
+
+Se o comando `python app.py` falhar com `ModuleNotFoundError`, normalmente é porque o ambiente virtual não está ativado ou o terminal foi aberto fora da pasta do projeto. Confirme que o comando `python -m pip install -r requirements.txt` foi executado na mesma pasta em que está o arquivo `requirements.txt`.
 
 ## Como usar
 
