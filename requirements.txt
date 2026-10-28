@@ -1,4 +1,3 @@
-requests
 easyocr
 opencv-python-headless
 matplotlib

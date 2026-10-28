@@ -2,11 +2,21 @@
 import os #os.system('cls')
 #biblioteca para manipular arquivos JSON
 import json
-#biblioteca para fazer requisições HTTP
-import requests
-import easyocr
-import cv2
-from matplotlib import pyplot as plt
+
+try:
+    import easyocr
+    import cv2
+    from matplotlib import pyplot as plt
+except ModuleNotFoundError as exc:
+    raise SystemExit(
+        "Dependências não instaladas. Siga estes passos no terminal dentro da pasta do projeto:\n"
+        "  python -m venv .venv\n"
+        "  .\\.venv\\Scripts\\Activate.ps1\n"
+        "  python -m pip install --upgrade pip\n"
+        "  python -m pip install -r requirements.txt\n"
+        "  python app.py\n\n"
+        f"Erro original: {exc}"
+    ) from exc
 
 #area da leitura de arquivos JSON, para armazenar pastas e PDFs criados, e funçoes para manipulaçao desses arquivos
 
